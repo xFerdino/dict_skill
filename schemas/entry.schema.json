@@ -1,0 +1,28 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "DictionaryEntry",
+  "type": "object",
+  "required": ["word", "wordKey", "translation", "lang", "sourceLanguage", "meanings", "masteryScore", "isNew", "createdBy"],
+  "properties": {
+    "word": { "type": "string" },
+    "wordKey": { "type": "string" },
+    "phonetic": { "type": "string" },
+    "translation": { "type": "string" },
+    "example": { "type": "string" },
+    "exampleTr": { "type": "string" },
+    "lang": { "type": "string" },
+    "tags": { "type": "array", "items": { "type": "string" } },
+    "masteryScore": { "type": "number", "const": 0 },
+    "isNew": { "type": "boolean", "const": true },
+    "cefr": { "type": ["string", "null"], "enum": ["A1", "A2", "B1", "B2", "C1", "C2", null] },
+    "mnemonic": { "type": ["string", "null"] },
+    "sourceLanguage": { "type": "string" },
+    "meanings": {
+      "type": "string",
+      "description": "Stringified JSON array of {pos, translation, example, exampleTr}"
+    },
+    "createdBy": { "type": "string", "const": "import" },
+    "article": { "type": "string" },
+    "gender": { "type": "string" }
+  }
+}

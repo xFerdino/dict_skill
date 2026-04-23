@@ -1,0 +1,6 @@
+{
+  "name": "dict_skill",
+  "version": "0.1.0",
+  "description": "Build high-quality learner dictionaries (Convex schema) from noisy JSONL via two-pass verify.",
+  "skills": "./skills"
+}
