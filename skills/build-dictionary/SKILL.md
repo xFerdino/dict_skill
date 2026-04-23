@@ -28,10 +28,11 @@ Parse from the user message (ask only if missing):
 4. **Draft loop.** Read `staged.jsonl` in order. Partition:
    - `easy` rows → copy straight into `data/<runId>/auto_easy.jsonl` (no LLM).
    - `medium` + `hard` → chunk into batches of 20; for each batch invoke `draft-entry` with the playbook + `prompts/draft-batch.md`. Append patches to `data/<runId>/drafts.jsonl`.
-5. **Verify gate.** For every drafted row where `touchedExample == true` OR `confidence != "high"` OR `tier == "hard"`, invoke `verify-example` in batches of 20. Append to `data/<runId>/verified.jsonl` (verdict `accept` or `revise` with revisedPatch applied) and `data/<runId>/flagged.jsonl` (verdict `reject`). Rows that skipped verification are merged into `verified.jsonl` as-is.
-6. **Review flagged.** If `flagged.jsonl` is non-empty, invoke `review-flagged`. Accepted rows move to `verified.jsonl`.
-7. **Export.** Invoke `export-convex-ts`. It writes `data/<runId>/out.ts`.
-8. **Report.** Write `data/<runId>/report.md` with: total rows, easy-skipped, drafted, verified-accept, verified-revise, flagged, plus 5 sample before/after pairs (favor the worst inputs — mojibake, nonsense examples).
+5. **Assign CEFR.** Invoke `assign-cefr`. It fills `cefr` for every row in `auto_easy.jsonl` and `drafts.jsonl` that still has `cefr=null`. Runs in batches of 40 with its own cached prefix (`prompts/assign-cefr.md`). Every row in the dictionary must have a CEFR level before proceeding.
+6. **Verify gate.** For every drafted row where `touchedExample == true` OR `confidence != "high"` OR `tier == "hard"`, invoke `verify-example` in batches of 20. Append to `data/<runId>/verified.jsonl` (verdict `accept` or `revise` with revisedPatch applied) and `data/<runId>/flagged.jsonl` (verdict `reject`). Rows that skipped verification are merged into `verified.jsonl` as-is.
+7. **Review flagged.** If `flagged.jsonl` is non-empty, invoke `review-flagged`. Accepted rows move to `verified.jsonl`.
+8. **Export.** Invoke `export-convex-ts`. It writes `data/<runId>/out.ts`.
+9. **Report.** Write `data/<runId>/report.md` with: total rows, easy-skipped, drafted, cefr-distribution (count per level A1–C2), verified-accept, verified-revise, flagged, plus 5 sample before/after pairs (favor the worst inputs — mojibake, nonsense examples).
 
 ## Two-pass flow (pseudocode)
 
@@ -39,12 +40,14 @@ Parse from the user message (ask only if missing):
 rows = intake(source)
 for batch in chunks(medium+hard rows, 20):
   drafts = draft_entry(batch, playbook)
-  to_verify = [d for d in drafts
-               if d.touchedExample
-               or d.confidence != "high"
-               or row.tier == "hard"]
-  verify_example(to_verify) -> accepts | revises | rejects
-merge auto_easy + accepts + revises -> verified.jsonl
+merge auto_easy + drafts -> all_rows
+assign_cefr(all_rows)              # fills cefr=null in batches of 40
+to_verify = [r for r in all_rows
+             if r.touchedExample
+             or r.confidence != "high"
+             or r.tier == "hard"]
+verify_example(to_verify) -> accepts | revises | rejects
+merge verified rows -> verified.jsonl
 flagged.jsonl -> review_flagged -> merge accepted back
 export_convex_ts(verified.jsonl) -> out.ts
 ```

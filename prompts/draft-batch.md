@@ -22,7 +22,7 @@ Output contract (strict):
       "phonetic": "optional",
       "article": "optional, nouns only",
       "gender": "optional, nouns only",
-      "cefr": "optional — A1..C2 if you can estimate",
+      "cefr": "include if you are confident (A1..C2); assign-cefr will fill any nulls in a dedicated pass",
       "tags": ["optional"]
     }
   }
