@@ -4,7 +4,7 @@
   "plugins": [
     {
       "name": "dict_skill",
-      "source": { "source": "local", "path": "../../" },
+      "source": { "source": "local", "path": "C:/Users/Luk/Saved Games/dict_skill" },
       "policy": { "installation": "AVAILABLE", "authentication": "ON_INSTALL" },
       "category": "Productivity"
     }
